@@ -521,36 +521,38 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .soundtrack-hero .page-lede { max-width: 380px; margin-top: 14px; font-size: 13px; }
 .record-visual {
   position: relative;
-  min-height: 320px;
   display: grid;
   place-items: center;
-  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1.15 / 1;
   background:
     radial-gradient(ellipse at 20% 12%, rgba(255,255,255,.55), transparent 40%),
     #D2C5B7;
 }
-.record-visual::before {
-  position: absolute;
-  width: min(70vw, 290px);
-  aspect-ratio: 1;
-  border: 1px solid rgba(240,232,220,.5);
-  border-radius: 50%;
-  background: repeating-radial-gradient(circle, #344452 0 2px, #55463F 3px 5px, #492C38 6px 8px);
-  box-shadow: 15px 18px 0 #8295A5, 25px 29px 0 #713747, 0 18px 40px rgba(52,68,82,.2);
-  content: "";
+.carousel-art { display: block; width: 99.5%; height: auto; overflow: visible; }
+.carousel-vinyl {
+  transform-box: fill-box;
+  transform-origin: center;
   animation: vinyl-spin 36s linear infinite;
+  animation-play-state: paused;
 }
-.record-visual::after {
-  position: absolute;
-  width: 76px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #B09A78;
-  content: "";
+.carousel-turning {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: carousel-turn 24s linear infinite;
+  animation-play-state: paused;
 }
-.record-label { z-index: 1; display: flex; width: 76px; height: 76px; flex-direction: column; align-items: center; justify-content: center; color: #282328; font: 8px/1.5 var(--mono); text-align: center; }
-.record-label span { font-weight: 500; }
-.record-label small { font-size: 7px; }
+.record-visual.is-playing .carousel-vinyl,
+.record-visual.is-playing .carousel-turning { animation-play-state: running; }
+.carousel-label-meta, .carousel-label-title, .carousel-label-artist, .carousel-label-state {
+  font-family: var(--mono);
+  font-weight: 500;
+}
+.carousel-label-meta { fill: #55463F; font-size: 5px; letter-spacing: 1px; }
+.carousel-label-title { fill: #344452; font-size: 6px; letter-spacing: .35px; }
+.carousel-label-artist { fill: #713747; font-size: 5px; letter-spacing: .15px; }
+.carousel-label-state { fill: #55463F; font-size: 4px; letter-spacing: 1px; }
 .playlist { padding-bottom: 62px; }
 .playlist-head { display: flex; justify-content: space-between; padding: 11px 0; color: var(--accent); border-bottom: 1px solid var(--line); }
 .track {
@@ -564,6 +566,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
   transition: padding .2s ease, background .2s ease;
 }
 .track:hover { padding-inline: 11px; background: rgba(210,197,183,.3); }
+.track.is-playing { background: rgba(210,197,183,.3); box-shadow: inset 2px 0 0 var(--pop); }
 .track-no, .track-length { color: var(--muted); font: 8px var(--mono); }
 .track strong, .track small { display: block; }
 .track strong { font: 15px var(--serif); }
@@ -588,6 +591,10 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .playlist-status:empty { display: none; }
 .playlist-status { margin: 10px 0 0; font: 8px var(--mono); }
 @keyframes vinyl-spin { to { transform: rotate(360deg); } }
+@keyframes carousel-turn {
+  from { transform: perspective(900px) rotateY(0deg); }
+  to { transform: perspective(900px) rotateY(360deg); }
+}
 
 /* Gift: a small toy theatre with a warm paper reveal. */
 .gift-page {
@@ -798,8 +805,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
   .notebook-content p:not(.date-stamp):not(.letter-end):not(.letter-sign) { font-size: 15px; }
   .soundtrack-hero { grid-template-columns: 1fr .9fr; align-items: center; gap: 6%; padding-block: 58px 48px; }
   .soundtrack-hero h1 { font-size: clamp(62px, 8vw, 94px); }
-  .record-visual { min-height: 390px; }
-  .record-visual::before { width: min(36vw, 300px); }
+  .record-visual { min-height: 0; }
   .playlist { max-width: 850px; padding-bottom: 75px; }
   .gift-hero { grid-template-columns: .7fr 1fr; grid-template-areas: "label label" "title title" "copy copy"; padding-block: 55px 16px; }
   .gift-hero h1 { font-size: clamp(75px, 10vw, 108px); }
@@ -869,9 +875,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
   .notebook-content h2 { margin-top: 38px; }
   .notebook-content p:not(.date-stamp):not(.letter-end):not(.letter-sign) { font-size: 16px; }
   .soundtrack-hero { padding-block: 80px 65px; }
-  .record-visual { min-height: 450px; }
-  .record-visual::before { width: 330px; }
-  .record-visual::after { width: 90px; }
+  .record-visual { min-height: 0; }
   .playlist { padding-bottom: 105px; }
   .gift-hero { grid-template-columns: .7fr 1fr; grid-template-areas: "label title" "copy title"; padding-block: 80px 28px; }
   .gift-hero h1 { font-size: 116px; }
