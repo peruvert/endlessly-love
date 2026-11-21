@@ -37,4 +37,4 @@ The pages automatically use the local image when the matching file exists. Other
 - Colors: antique ivory, warm stone, Parisian blue, slate navy, oxblood, deep wine and espresso, with restrained antique brass accents
 
 ## Playlist audio
-The first five tracks are stored in `assets/audio/`. Add future tracks there and update the playlist in `soundtrack.html`.
+The first six tracks are stored in `assets/audio/`. Add future tracks there and update the playlist in `soundtrack.html`.
