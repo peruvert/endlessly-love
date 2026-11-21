@@ -17,6 +17,7 @@ Published at https://peruvert.github.io/endlessly-love/
 - `letter.html` — A Few Words
 - `soundtrack.html` — On Repeat
 - `gift.html` — Something for You, an interactive gift
+- `admit-one.html` — Admit One, a private two-film screening
 - `last.html` — Until Then, a quiet closing note
 
 ## Replace photographs
@@ -38,3 +39,6 @@ The pages automatically use the local image when the matching file exists. Other
 
 ## Playlist audio
 The first seven tracks are stored in `assets/audio/`. Add future tracks there and update the playlist in `soundtrack.html`.
+
+## Private screening videos
+Add the two MP4 files to `assets/videos/` as `screening-01.mp4` and `screening-02.mp4`. The screening room checks each file when selected and shows a placeholder until it is available.

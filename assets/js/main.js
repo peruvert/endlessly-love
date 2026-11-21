@@ -27,6 +27,23 @@ if (playlist) {
   const carouselState = carousel ? carousel.querySelector("[data-carousel-state]") : null;
 
   if (player && source && status) {
+    const stateLabels = {
+      ready: "READY",
+      loading: "LOADING",
+      playing: "PLAYING",
+      paused: "PAUSED",
+      buffering: "BUFFERING",
+      ended: "FINISHED",
+      error: "UNAVAILABLE"
+    };
+    const loadTimeoutMs = 8000;
+    let activeTrack = null;
+    let requestId = 0;
+    let loadingTimer = 0;
+    let hasPlayedCurrentTrack = false;
+    let playbackRequested = false;
+    let suppressPauseEvent = false;
+
     const setSvgLabel = (element, value, maxWidth) => {
       if (!element) return;
       element.textContent = value;
@@ -39,33 +56,45 @@ if (playlist) {
       }
     };
 
-    const getSelectedTrack = () => playlist.querySelector('.track-play[aria-pressed="true"]');
-    const getCurrentTrack = () => {
+    const resolveTrackSource = (trackSrc) => {
+      if (!trackSrc) return null;
+      try {
+        return new URL(trackSrc, document.baseURI).href;
+      } catch {
+        return null;
+      }
+    };
+
+    const getTrackForCurrentSource = () => {
       const currentSrc = player.currentSrc || source.src;
+      if (!currentSrc) return null;
       return Array.from(trackButtons).find((button) => (
-        button.dataset.trackSrc
-        && new URL(button.dataset.trackSrc, document.baseURI).href === currentSrc
+        resolveTrackSource(button.dataset.trackSrc) === currentSrc
       )) || null;
     };
 
-    const updateCarousel = (state, track) => {
-      const stateLabels = {
-        ready: "READY",
-        loading: "LOADING",
-        playing: "PLAYING",
-        paused: "PAUSED",
-        buffering: "BUFFERING",
-        ended: "FINISHED",
-        error: "UNAVAILABLE"
-      };
+    const setActiveTrack = (track) => {
+      activeTrack = track;
+      trackButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button === track));
+      });
+      if (track) {
+        player.setAttribute(
+          "aria-label",
+          `Audio player for ${track.dataset.trackTitle} by ${track.dataset.trackArtist}`
+        );
+      }
+    };
 
+    const updateCarousel = (state, track) => {
+      status.dataset.state = state;
       if (carousel) {
         carousel.classList.toggle("is-playing", state === "playing" && Boolean(track));
         carousel.setAttribute(
           "aria-label",
           track
             ? `${stateLabels[state]}: ${track.dataset.trackTitle} by ${track.dataset.trackArtist}`
-            : "An open suitcase record player with a miniature carousel rising from its vinyl. Select a track to play."
+            : "A vintage suitcase record player with a miniature carousel above the vinyl. The player remains still while the carousel turns only during playback."
         );
       }
 
@@ -79,14 +108,195 @@ if (playlist) {
       });
     };
 
+    const clearLoadingTimer = () => {
+      if (loadingTimer) {
+        window.clearTimeout(loadingTimer);
+        loadingTimer = 0;
+      }
+    };
+
+    const getEventTrack = () => {
+      const currentTrack = getTrackForCurrentSource() || activeTrack;
+      if (currentTrack && currentTrack !== activeTrack) setActiveTrack(currentTrack);
+      return currentTrack;
+    };
+
+    const failTrack = (track, message) => {
+      clearLoadingTimer();
+      playbackRequested = false;
+      updateCarousel("error", track);
+      status.textContent = message;
+    };
+
+    const mediaErrorMessage = (track) => {
+      const title = track.dataset.trackTitle;
+      const mediaError = player.error;
+      if (!mediaError) return `Could not load ${title}. Select PLAY to retry.`;
+
+      switch (mediaError.code) {
+        case 1:
+          return `Loading ${title} was interrupted. Select PLAY to retry.`;
+        case 2:
+          return `A network error interrupted ${title}. Check your connection and select PLAY to retry.`;
+        case 3:
+          return `The audio file for ${title} could not be decoded. Select PLAY to retry.`;
+        case 4:
+          return unavailableMessage(track);
+        default:
+          return `Could not load ${title}. Select PLAY to retry.`;
+      }
+    };
+
+    const handleMediaError = () => {
+      const track = getEventTrack();
+      if (!track || !player.error) return;
+      playbackRequested = false;
+      if (player.error.code === 1) {
+        clearLoadingTimer();
+        updateCarousel("paused", track);
+        status.textContent = mediaErrorMessage(track);
+        return;
+      }
+      failTrack(track, mediaErrorMessage(track));
+      console.error(`Audio failed for "${track.dataset.trackTitle}".`, player.error);
+    };
+
+    const unavailableMessage = (track) => (
+      `The audio source for ${track.dataset.trackTitle} is unavailable. Check the file and select PLAY to retry.`
+    );
+    const localFileAudioMessage = (
+      "Audio needs a local web server. Open this page with VS Code Live Server or another local server, not directly as a file."
+    );
+
+    const startLoadingTimer = (track, request) => {
+      clearLoadingTimer();
+      loadingTimer = window.setTimeout(() => {
+        loadingTimer = 0;
+        if (
+          request !== requestId
+          || activeTrack !== track
+          || player.error
+          || hasPlayedCurrentTrack
+        ) return;
+
+        if (!player.paused) {
+          suppressPauseEvent = true;
+          player.pause();
+        }
+        const message = player.networkState === HTMLMediaElement.NETWORK_NO_SOURCE
+          ? unavailableMessage(track)
+          : `${track.dataset.trackTitle} is taking too long to load. Check your connection and select PLAY to retry.`;
+        failTrack(track, message);
+      }, loadTimeoutMs);
+    };
+
+    const handlePlayFailure = (error, track, request) => {
+      if (request !== requestId || activeTrack !== track) return;
+      if (error.name === "AbortError") {
+        if (status.dataset.state === "error") return;
+        if (player.paused && !playbackRequested) {
+          clearLoadingTimer();
+          updateCarousel("paused", track);
+          status.textContent = `Paused: ${track.dataset.trackTitle} by ${track.dataset.trackArtist}`;
+        }
+        return;
+      }
+      if (player.error) return;
+
+      clearLoadingTimer();
+      if (error.name === "NotAllowedError") {
+        updateCarousel("paused", track);
+        status.textContent = `Playback was blocked for ${track.dataset.trackTitle}. Use the audio controls to retry.`;
+        return;
+      }
+      const message = error.name === "NotSupportedError"
+        ? `The audio file for ${track.dataset.trackTitle} is unavailable or unsupported.`
+        : `Could not start ${track.dataset.trackTitle}. Check your connection and select PLAY to retry.`;
+      failTrack(track, message);
+      console.error(`Audio playback failed for "${track.dataset.trackTitle}".`, error);
+    };
+
     updateCarousel("ready", null);
 
+    player.addEventListener("loadstart", () => {
+      if (!playbackRequested) return;
+      const track = getEventTrack();
+      if (!track) return;
+      if (!loadingTimer) startLoadingTimer(track, requestId);
+      if (!hasPlayedCurrentTrack) {
+        updateCarousel("loading", track);
+        status.textContent = `Loading ${track.dataset.trackTitle}...`;
+      }
+    });
+
+    player.addEventListener("play", () => {
+      if (window.location.protocol === "file:") {
+        const track = getEventTrack();
+        playbackRequested = false;
+        clearLoadingTimer();
+        if (!player.paused) {
+          suppressPauseEvent = true;
+          player.pause();
+        }
+        if (track) {
+          updateCarousel("error", track);
+          status.textContent = localFileAudioMessage;
+        }
+        return;
+      }
+      playbackRequested = true;
+      const track = getEventTrack();
+      if (!track) return;
+      if (!loadingTimer) startLoadingTimer(track, requestId);
+      if (!hasPlayedCurrentTrack) {
+        updateCarousel("loading", track);
+        status.textContent = `Loading ${track.dataset.trackTitle}...`;
+      }
+    });
+
+    player.addEventListener("loadedmetadata", () => {
+      if (!playbackRequested) return;
+      const track = getEventTrack();
+      if (track && !hasPlayedCurrentTrack && !player.paused) {
+        updateCarousel("loading", track);
+      }
+    });
+
+    player.addEventListener("canplay", () => {
+      if (!playbackRequested) return;
+      const track = getEventTrack();
+      if (track && player.paused && !hasPlayedCurrentTrack) {
+        clearLoadingTimer();
+        updateCarousel("ready", track);
+        status.textContent = `Ready: ${track.dataset.trackTitle}. Press play to start.`;
+      }
+    });
+
+    player.addEventListener("waiting", () => {
+      const track = getEventTrack();
+      if (!track || player.paused) return;
+      const state = hasPlayedCurrentTrack ? "buffering" : "loading";
+      updateCarousel(state, track);
+      status.textContent = state === "loading"
+        ? `Loading ${track.dataset.trackTitle}...`
+        : `Buffering ${track.dataset.trackTitle}...`;
+    });
+
+    player.addEventListener("stalled", () => {
+      const track = getEventTrack();
+      if (!track || player.paused) return;
+      const state = hasPlayedCurrentTrack ? "buffering" : "loading";
+      updateCarousel(state, track);
+      status.textContent = state === "loading"
+        ? `Loading ${track.dataset.trackTitle}...`
+        : `Buffering ${track.dataset.trackTitle}...`;
+    });
+
     player.addEventListener("playing", () => {
-      const currentTrack = getCurrentTrack();
+      const currentTrack = getEventTrack();
       if (currentTrack) {
-        trackButtons.forEach((button) => {
-          button.setAttribute("aria-pressed", String(button === currentTrack));
-        });
+        hasPlayedCurrentTrack = true;
+        clearLoadingTimer();
         updateCarousel("playing", currentTrack);
         status.textContent = `Now playing: ${currentTrack.dataset.trackTitle} by ${currentTrack.dataset.trackArtist}`;
       } else {
@@ -95,58 +305,135 @@ if (playlist) {
     });
 
     player.addEventListener("pause", () => {
-      const currentTrack = getCurrentTrack() || getSelectedTrack();
-      updateCarousel("paused", currentTrack);
-      if (currentTrack && status.textContent.startsWith("Now playing:")) {
-        status.textContent = `Paused: ${currentTrack.dataset.trackTitle} by ${currentTrack.dataset.trackArtist}`;
+      if (suppressPauseEvent) {
+        suppressPauseEvent = false;
+        return;
       }
-    });
-
-    player.addEventListener("waiting", () => {
-      const currentTrack = getCurrentTrack() || getSelectedTrack();
-      updateCarousel("buffering", currentTrack);
-    });
-
-    player.addEventListener("stalled", () => {
-      const currentTrack = getCurrentTrack() || getSelectedTrack();
-      updateCarousel("buffering", currentTrack);
+      if (player.ended) return;
+      const wasPlaybackRequested = playbackRequested;
+      playbackRequested = false;
+      clearLoadingTimer();
+      const currentTrack = getEventTrack();
+      if (!currentTrack) {
+        updateCarousel("ready", null);
+        return;
+      }
+      if (
+        wasPlaybackRequested
+        && !hasPlayedCurrentTrack
+        && player.networkState === HTMLMediaElement.NETWORK_NO_SOURCE
+      ) {
+        failTrack(currentTrack, unavailableMessage(currentTrack));
+        console.error(`Audio source unavailable for "${currentTrack.dataset.trackTitle}".`);
+        return;
+      }
+      updateCarousel("paused", currentTrack);
+      status.textContent = `Paused: ${currentTrack.dataset.trackTitle} by ${currentTrack.dataset.trackArtist}`;
     });
 
     player.addEventListener("ended", () => {
-      const currentTrack = getCurrentTrack() || getSelectedTrack();
-      updateCarousel("ended", currentTrack);
-      if (currentTrack) status.textContent = `Finished: ${currentTrack.dataset.trackTitle} by ${currentTrack.dataset.trackArtist}`;
+      clearLoadingTimer();
+      hasPlayedCurrentTrack = false;
+      playbackRequested = false;
+      const currentTrack = getEventTrack();
+      if (currentTrack) {
+        updateCarousel("ended", currentTrack);
+        status.textContent = `Finished: ${currentTrack.dataset.trackTitle} by ${currentTrack.dataset.trackArtist}`;
+      }
     });
 
-    player.addEventListener("error", () => {
-      updateCarousel("error", getCurrentTrack() || getSelectedTrack());
-      status.textContent = "This track could not be loaded.";
-    });
+    player.addEventListener("error", handleMediaError);
 
     trackButtons.forEach((button) => {
       button.addEventListener("click", () => {
         const { trackSrc, trackTitle, trackArtist } = button.dataset;
 
         if (!trackSrc || !trackTitle || !trackArtist) {
-          status.textContent = "This playlist track is missing its audio details.";
-          console.error("Playlist track is missing required data.");
+          const title = trackTitle || "This track";
+          ++requestId;
+          clearLoadingTimer();
+          if (!player.paused) {
+            suppressPauseEvent = true;
+            player.pause();
+          }
+          hasPlayedCurrentTrack = false;
+          playbackRequested = false;
+          setActiveTrack(button);
+          source.removeAttribute("src");
+          player.load();
+          failTrack(button, `${title} has no valid audio source.`);
+          console.error(`Playlist track "${title}" is missing audio details.`);
           return;
         }
 
-        trackButtons.forEach((trackButton) => {
-          trackButton.setAttribute("aria-pressed", String(trackButton === button));
-        });
-        source.src = trackSrc;
-        player.setAttribute("aria-label", `Audio player for ${trackTitle} by ${trackArtist}`);
+        const trackUrl = resolveTrackSource(trackSrc);
+        if (!trackUrl) {
+          ++requestId;
+          clearLoadingTimer();
+          if (!player.paused) {
+            suppressPauseEvent = true;
+            player.pause();
+          }
+          hasPlayedCurrentTrack = false;
+          playbackRequested = false;
+          setActiveTrack(button);
+          source.removeAttribute("src");
+          player.load();
+          failTrack(button, `The audio source for ${trackTitle} is invalid.`);
+          console.error(`Playlist track "${trackTitle}" has an invalid audio URL.`);
+          return;
+        }
+
+        if (window.location.protocol === "file:") {
+          ++requestId;
+          clearLoadingTimer();
+          if (!player.paused) {
+            suppressPauseEvent = true;
+            player.pause();
+          }
+          hasPlayedCurrentTrack = false;
+          playbackRequested = false;
+          setActiveTrack(button);
+          updateCarousel("error", button);
+          status.textContent = localFileAudioMessage;
+          return;
+        }
+
+        const currentUrl = player.currentSrc || source.src;
+        const sourceChanged = trackUrl !== currentUrl;
+        const retryingFailedSource = Boolean(player.error);
+        if (!sourceChanged && !retryingFailedSource && activeTrack === button && !player.paused) return;
+
+        const request = ++requestId;
+        clearLoadingTimer();
+        setActiveTrack(button);
+        playbackRequested = true;
         updateCarousel("loading", button);
         status.textContent = `Loading ${trackTitle}...`;
-        player.load();
-        player.play().catch((error) => {
-          if (button.getAttribute("aria-pressed") !== "true") return;
-          updateCarousel("error", button);
-          status.textContent = `Could not play ${trackTitle}. Use the audio controls to retry.`;
-          console.error("Playlist playback failed.", error);
-        });
+
+        if (sourceChanged || retryingFailedSource) {
+          if (!player.paused) {
+            suppressPauseEvent = true;
+            player.pause();
+          }
+          if (player.readyState > 0) player.currentTime = 0;
+          source.src = trackUrl;
+          hasPlayedCurrentTrack = false;
+          player.load();
+        } else if (player.ended) {
+          player.currentTime = 0;
+          hasPlayedCurrentTrack = false;
+        }
+
+        startLoadingTimer(button, request);
+        try {
+          const playRequest = player.play();
+          if (playRequest && typeof playRequest.catch === "function") {
+            playRequest.catch((error) => handlePlayFailure(error, button, request));
+          }
+        } catch (error) {
+          handlePlayFailure(error, button, request);
+        }
       });
     });
   }

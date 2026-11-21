@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#D2C5B7">
+  <meta name="description" content="Two little videos, saved for Juione.">
+  <title>Admit One — A Private Screening</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/admit-one.css">
+  <script src="assets/js/main.js" defer></script>
+  <script src="assets/js/admit-one.js" defer></script>
+</head>
+<body class="admit-page">
+  <div class="site-shell">
+    <header class="site-header" id="top">
+      <a class="wordmark" href="index.html">K / Y <span>NOTES I DIDN'T WANT TO LOSE</span></a>
+      <button class="menu-toggle" aria-expanded="false" aria-controls="site-nav"><span>COME ↗</span></button>
+      <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+        <a href="index.html">A Little Something</a>
+        <a href="subject.html">The Things I Notice</a>
+        <a href="collection.html">In Passing</a>
+        <a href="letter.html">A Few Words</a>
+        <a href="soundtrack.html">On Repeat</a>
+        <a href="gift.html">Something for You</a>
+        <a class="active" href="admit-one.html">Admit One</a>
+        <a href="last.html">Until Then</a>
+      </nav>
+    </header>
+    <main>
+      <section class="admit-chapter section-wrap" data-admit-one>
+        <header class="admit-heading">
+          <p class="eyebrow">07 / A PRIVATE SCREENING</p>
+          <h1>Admit<br><em>One.</em></h1>
+          <p class="admit-intro-copy">I found two little videos I wanted to show you. Take your ticket when you're ready.</p>
+        </header>
+
+        <section class="ticket-view" id="ticket-view" aria-label="Your cinema ticket">
+          <div class="ticket-stage">
+            <article class="admit-ticket">
+              <div class="ticket-main">
+                <p class="ticket-house">THE LITTLE PICTURE HOUSE</p>
+                <p class="ticket-label">ADMIT</p>
+                <h2>ONE</h2>
+                <p class="ticket-reserved">ONE SEAT RESERVED FOR YOU</p>
+                <div class="ticket-details">
+                  <span>FOR JUIONE</span>
+                  <span>NO. 007</span>
+                </div>
+              </div>
+              <div class="ticket-stub" aria-hidden="true">
+                <span class="stub-admission">ADMIT ONE</span>
+                <span class="stub-seat">SEAT<br>01</span>
+                <span class="stub-barcode"></span>
+                <span class="stub-number">007</span>
+              </div>
+            </article>
+          </div>
+          <p class="ticket-note">Nothing formal. Just a couple of things I saved for you.</p>
+          <button class="ticket-action" id="take-ticket" type="button" aria-controls="cinema-room" aria-expanded="false">
+            <span data-ticket-label>TAKE YOUR TICKET</span><span aria-hidden="true">↗</span>
+          </button>
+        </section>
+
+        <section class="cinema-room" id="cinema-room" aria-labelledby="screening-heading" hidden>
+          <header class="cinema-heading">
+            <div>
+              <p class="cinema-kicker">07 / THE SCREENING ROOM</p>
+              <h2 id="screening-heading" tabindex="-1">Lights down,<br><em>if you like.</em></h2>
+            </div>
+            <button class="return-ticket" type="button" data-return-ticket>BACK TO TICKET <span aria-hidden="true">↗</span></button>
+          </header>
+
+          <div class="cinema-auditorium">
+            <div class="screen-stage">
+              <div class="screen-frame">
+                <div class="screen-surface">
+                  <video class="admit-video" controls playsinline preload="none" aria-label="Selected screening" hidden>
+                    Your browser does not support HTML video.
+                  </video>
+                  <div class="video-placeholder" data-video-placeholder>
+                    <span class="placeholder-kicker">THE SCREEN IS WAITING</span>
+                    <p data-placeholder-message>Choose a screening below. Its file will be checked when you open it.</p>
+                    <code data-placeholder-path></code>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="screen-caption">
+              <p class="screen-index"><span data-selected-index>01</span> / TWO SHORT FILMS</p>
+              <h3 data-selected-title>Screening 01</h3>
+              <p data-selected-caption>A little thing I wanted to show you.</p>
+            </div>
+          </div>
+
+          <div class="screening-list" role="group" aria-label="Choose a screening">
+            <button class="screening-choice" type="button" data-screening data-screening-id="01" data-video-src="assets/videos/screening-01.mp4" data-title="Screening 01" data-caption="A little thing I wanted to show you." aria-pressed="true">
+              <span class="choice-number">01</span>
+              <span class="choice-copy"><strong>SCREENING 01</strong><small data-availability-label>NOT CHECKED YET</small></span>
+              <span class="choice-arrow" aria-hidden="true">↗</span>
+            </button>
+            <button class="screening-choice" type="button" data-screening data-screening-id="02" data-video-src="assets/videos/screening-02.mp4" data-title="Screening 02" data-caption="One more little thing, saved for you." aria-pressed="false">
+              <span class="choice-number">02</span>
+              <span class="choice-copy"><strong>SCREENING 02</strong><small data-availability-label>NOT CHECKED YET</small></span>
+              <span class="choice-arrow" aria-hidden="true">↗</span>
+            </button>
+          </div>
+          <p class="screening-status" data-screening-status aria-live="polite"></p>
+        </section>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <a class="footer-mark" href="index.html">made by <span>Khaleed.</span></a>
+      <p>FOR YON · <span data-year>2026</span></p>
+      <a href="#top" class="back-top">UP YOU GO ↑</a>
+    </footer>
+  </div>
+</body>
+</html>
