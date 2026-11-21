@@ -41,4 +41,4 @@ The pages automatically use the local image when the matching file exists. Other
 The first seven tracks are stored in `assets/audio/`. Add future tracks there and update the playlist in `soundtrack.html`.
 
 ## Private screening videos
-Add the two MP4 files to `assets/videos/` as `screening-01.mp4` and `screening-02.mp4`. The screening room checks each file when selected and shows a placeholder until it is available.
+Add the two MP4 files to `assets/videos/` as `screening-01.mp4` and `screening-02.mp4`. The screening room checks each file when selected and shows a placeholder until it is available. The screen adjusts to each video's aspect ratio so the video is not cropped or stretched.
