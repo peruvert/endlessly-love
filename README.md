@@ -7,6 +7,9 @@ A playful editorial scrapbook made by Khaleed for Yon. Each chapter has its own 
 2. Open the `the-things-i-keep` folder in VS Code.
 3. Open `index.html` with Live Server.
 
+## Live site
+Published at https://peruvert.github.io/endlessly-love/
+
 ## Pages
 - `index.html` — A Little Something, the cover
 - `subject.html` — The Things I Notice
