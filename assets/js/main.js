@@ -14,6 +14,52 @@ document.querySelectorAll("[data-year]").forEach((element) => {
   element.textContent = new Date().getFullYear();
 });
 
+const playlist = document.querySelector(".playlist");
+
+if (playlist) {
+  const player = playlist.querySelector(".player-slot audio");
+  const source = player ? player.querySelector("source") : null;
+  const status = playlist.querySelector(".playlist-status");
+  const trackButtons = playlist.querySelectorAll(".track-play");
+
+  if (player && source && status) {
+    player.addEventListener("playing", () => {
+      const selectedTrack = playlist.querySelector('.track-play[aria-pressed="true"]');
+      if (selectedTrack) {
+        status.textContent = `Now playing: ${selectedTrack.dataset.trackTitle} by ${selectedTrack.dataset.trackArtist}`;
+      }
+    });
+
+    player.addEventListener("error", () => {
+      status.textContent = "This track could not be loaded.";
+    });
+
+    trackButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const { trackSrc, trackTitle, trackArtist } = button.dataset;
+
+        if (!trackSrc || !trackTitle || !trackArtist) {
+          status.textContent = "This playlist track is missing its audio details.";
+          console.error("Playlist track is missing required data.");
+          return;
+        }
+
+        source.src = trackSrc;
+        player.setAttribute("aria-label", `Audio player for ${trackTitle} by ${trackArtist}`);
+        trackButtons.forEach((trackButton) => {
+          trackButton.setAttribute("aria-pressed", String(trackButton === button));
+        });
+        status.textContent = `Loading ${trackTitle}...`;
+        player.load();
+        player.play().catch((error) => {
+          status.textContent = `Could not play ${trackTitle}. Use the audio controls to retry.`;
+          console.error("Playlist playback failed.", error);
+        });
+      });
+    });
+  }
+}
+
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const revealTargets = document.querySelectorAll("main > section, main > article");
 

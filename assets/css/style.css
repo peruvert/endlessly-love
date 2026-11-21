@@ -555,7 +555,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .playlist-head { display: flex; justify-content: space-between; padding: 11px 0; color: var(--accent); border-bottom: 1px solid var(--line); }
 .track {
   display: grid;
-  grid-template-columns: 34px 1fr 42px;
+  grid-template-columns: 34px minmax(0, 1fr) 42px auto;
   align-items: center;
   gap: 12px;
   min-height: 71px;
@@ -568,6 +568,16 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .track strong, .track small { display: block; }
 .track strong { font: 15px var(--serif); }
 .track small { color: var(--muted); font-size: 10px; }
+.track-play {
+  padding: 7px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  background: transparent;
+  font: 8px var(--mono);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.track-play:hover, .track-play[aria-pressed="true"] { color: var(--surface); background: var(--accent); }
 .player-slot {
   margin-top: 24px;
   padding: 16px 17px;
@@ -575,6 +585,8 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
   color: #282328;
 }
 .player-slot audio { display: block; width: 100%; }
+.playlist-status:empty { display: none; }
+.playlist-status { margin: 10px 0 0; font: 8px var(--mono); }
 @keyframes vinyl-spin { to { transform: rotate(360deg); } }
 
 /* Gift: a small toy theatre with a warm paper reveal. */
