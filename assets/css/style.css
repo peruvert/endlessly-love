@@ -569,18 +569,12 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .track strong { font: 15px var(--serif); }
 .track small { color: var(--muted); font-size: 10px; }
 .player-slot {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4px 12px;
   margin-top: 24px;
   padding: 16px 17px;
   background: #8295A5;
   color: #282328;
 }
-.player-slot span { font: 8px var(--mono); letter-spacing: .09em; }
-.player-slot strong { font: 13px var(--serif); }
-.player-slot small { grid-column: 1 / -1; color: #282328; font: 9px var(--mono); }
-.playlist .type-label { margin-top: 17px; font-size: 8px; }
+.player-slot audio { display: block; width: 100%; }
 @keyframes vinyl-spin { to { transform: rotate(360deg); } }
 
 /* Gift: a small toy theatre with a warm paper reveal. */

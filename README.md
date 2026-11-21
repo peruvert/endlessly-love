@@ -36,5 +36,5 @@ The pages automatically use the local image when the matching file exists. Other
 - DM Mono — labels, numbering and navigation
 - Colors: antique ivory, warm stone, Parisian blue, slate navy, oxblood, deep wine and espresso, with restrained antique brass accents
 
-## Next development stage
-The playlist currently has layout placeholders and space for a future audio player.
+## Playlist audio
+The first track is `assets/audio/suga-iced-tea.mp3`. Add the next tracks to `assets/audio/` when they are ready.
