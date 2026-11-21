@@ -13,6 +13,7 @@ if (admitChapter) {
   const selectedCaption = admitChapter.querySelector("[data-selected-caption]");
   const screeningStatus = admitChapter.querySelector("[data-screening-status]");
   const video = admitChapter.querySelector(".admit-video");
+  const screenSurface = admitChapter.querySelector(".screen-surface");
   const videoPlaceholder = admitChapter.querySelector("[data-video-placeholder]");
   const placeholderMessage = admitChapter.querySelector("[data-placeholder-message]");
   const placeholderPath = admitChapter.querySelector("[data-placeholder-path]");
@@ -43,6 +44,7 @@ if (admitChapter) {
   const showScreeningPlaceholder = (button, message) => {
     if (!video.paused) video.pause();
     video.hidden = true;
+    screenSurface.style.aspectRatio = "16 / 9";
     videoPlaceholder.hidden = false;
     placeholderMessage.textContent = message;
     placeholderPath.textContent = button.dataset.videoSrc;
@@ -169,6 +171,7 @@ if (admitChapter) {
     if (resumeAt > 0 && Number.isFinite(video.duration)) {
       video.currentTime = Math.min(resumeAt, video.duration);
     }
+    screenSurface.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
     video.hidden = false;
     videoPlaceholder.hidden = true;
     screeningStatus.textContent = "Ready when you are. Press play to start this screening.";
