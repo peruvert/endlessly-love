@@ -83,6 +83,7 @@ figure, p { margin-top: 0; }
   min-height: 46px;
   display: flex;
   align-items: center;
+  padding-inline: 10px;
   color: var(--muted);
   font: 9px var(--mono);
   letter-spacing: .04em;
@@ -90,6 +91,11 @@ figure, p { margin-top: 0; }
   transition: color .2s ease, transform .2s ease;
 }
 .site-nav a:hover, .site-nav a.active { color: var(--ink); }
+.site-nav a.active {
+  border-radius: 2px;
+  background: var(--surface);
+  color: var(--accent);
+}
 .site-nav a:hover { transform: translateY(-2px); }
 .menu-toggle {
   width: 72px;
@@ -106,7 +112,7 @@ figure, p { margin-top: 0; }
   letter-spacing: .07em;
 }
 .eyebrow, .type-label, .photo-label, .side-index, .image-caption,
-.date-stamp, .notebook-margin, .playlist-head, .gallery-footnote,
+.date-stamp, .notebook-margin, .playlist-head,
 .collection-stamp, .gallery-aside, .snap figcaption span,
 .closing-label, .profile-index, .cover-stamp {
   font: 9px/1.65 var(--mono);
@@ -420,8 +426,6 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
   text-align: center;
   transform: rotate(6deg);
 }
-.gallery-footnote { margin: 0 0 58px; color: var(--muted); font-size: 8px; line-height: 2; }
-.gallery-footnote code { color: var(--ink); }
 .lightbox {
   width: min(94vw, 960px);
   max-width: none;
@@ -810,7 +814,6 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
   .snap-two .photo-placeholder { min-height: 360px; }
   .snap-four .photo-placeholder { min-height: 455px; }
   .gallery-aside { align-self: center; justify-self: center; margin: 25px 0; }
-  .gallery-footnote { margin-bottom: 75px; }
   .letter-heading { padding-block: 55px 28px; }
   .notebook-page { width: min(100%, 900px); margin: 0 auto 75px; padding: 55px 10% 65px 14%; }
   .notebook-page::before { left: 9%; }
@@ -845,7 +848,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
     border: 0;
     box-shadow: none;
   }
-  .site-nav a { min-height: 44px; font-size: 9px; }
+  .site-nav a { min-height: 44px; padding-inline: 8px; font-size: 9px; }
 }
 
 @media (min-width: 1024px) {
@@ -880,7 +883,6 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
   .snap-four { margin-top: -30px; }
   .snap-four .photo-placeholder { min-height: 510px; }
   .gallery-aside { font-size: 10px; }
-  .gallery-footnote { margin-bottom: 90px; }
   .letter-heading { padding-block: 73px 35px; }
   .letter-heading .page-lede { margin-left: 17%; }
   .notebook-page { padding: 70px 13% 80px 17%; margin-bottom: 100px; }
